@@ -1,0 +1,256 @@
+// These are unused codes for backups and references.
+
+	static XYSeriesCollection dataset;
+    static CSVReader reader;
+    static String[] readNextLine;
+    static double[][] dataArray;
+	static String scanedData = "";
+	static double[][] node_data;
+	static int node_entries;
+	private static int numberOfNodes;
+	private static int numberOfExperiments;
+	
+	private static double[][] node_mean;
+	private static double data_mean;
+	private static XYSeriesCollection mean_dataset;
+	private static double Xvalue;
+	private static double Yvalue;
+	
+	private static int[] sum;
+	private static int elementSize;
+	private static double[][][] data;
+	private static Integer experiment;
+	//--------------------------------
+	private static double[][] trans;
+	private static double[][] trans_data;
+
+	 //================================= Generate data for calculations
+		static double[][][] node_data(String filename, int node, int start, int end, int endNode, int endExperiment) throws IOException{
+			
+			Scanner scan = null;
+			
+			LineNumberReader  lnr = new LineNumberReader(new FileReader(new File(filename)));
+			try { lnr.skip(Long.MAX_VALUE); } 
+			catch (IOException e1) { e1.printStackTrace(); }
+			lnr.close();
+			
+			elementSize = lnr.getLineNumber()-1; // number of rows
+			data = new double [endExperiment][elementSize][endNode];
+			try {
+				scan = new Scanner (new BufferedReader(new FileReader(filename)));
+				scan.nextLine();
+
+				node_entries = 0;
+				if (scan.hasNext()){
+					for (int i = 0; i < lnr.getLineNumber()-1; i++){
+						for (int j = start; j < end; j++){
+					scanedData = scan.nextLine();
+					String [] array = scanedData.split(",");
+					data[j][node_entries][node] = Double.parseDouble(array[node]);
+					System.out.println(node + " --- " + data[j][node_entries][node]);
+					//node_entries++;
+						}
+				} 
+				scan.close();
+				}
+			} 
+			catch (FileNotFoundException e) { e.printStackTrace(); }
+			
+			return data;
+		}
+//-------------------------------------- End of data generator
+		
+		
+		
+		
+		
+		public static class CrunchifyCSVtoArrayList {
+			public static void main(int start, int end, int firstNode, int lastNode) throws NumberFormatException, IOException{
+				String name = Analytics.exprName.getText();
+		    	String parameter = String.valueOf(Analytics.paramType_1.getSelectedItem());
+		    	String setting =  String.valueOf(Analytics.typeSet);
+		    	
+		    	for (int index = start; index < end; index++){
+		    		String file = reading_data.locate_file(name, parameter, setting, index);
+				
+				BufferedReader crunchifyBuffer = null;
+				
+				try {
+					String crunchifyLine;
+					crunchifyBuffer = new BufferedReader(new FileReader(file));
+					
+					// How to read file in java line by line?
+					while ((crunchifyLine = crunchifyBuffer.readLine()) != null) {
+						//System.out.println("Raw CSV data: " + crunchifyLine);
+						System.out.println("Converted ArrayList data: " + crunchifyCSVtoArrayList(crunchifyLine) + "\n");
+					}
+					
+				} catch (IOException e) {
+					e.printStackTrace();
+				} finally {
+					try {
+						if (crunchifyBuffer != null) crunchifyBuffer.close();
+					} catch (IOException crunchifyException) {
+						crunchifyException.printStackTrace();
+					}
+				}
+		    	}
+			}
+			
+			// Utility which converts CSV to ArrayList using Split Operation
+			public static ArrayList<String> crunchifyCSVtoArrayList(String crunchifyCSV) {
+				ArrayList<String> crunchifyResult = new ArrayList<String>();
+				
+				if (crunchifyCSV != null) {
+					String[] splitData = crunchifyCSV.split("\\s*,\\s*");
+					for (int i = 0; i < splitData.length; i++) {
+						if (!(splitData[i] == null) || !(splitData[i].length() == 0)) {
+							crunchifyResult.add(splitData[i].trim());
+						}
+					}
+				}
+				
+				return crunchifyResult;
+			}
+			
+		}
+		
+	//================================= Generate XY-data for calculations
+			static double[][] node_Data(String filename, int node_id) throws IOException{
+				
+				Scanner scan = null;
+				
+				LineNumberReader  lnr = new LineNumberReader(new FileReader(new File(filename)));
+				try {
+					lnr.skip(Long.MAX_VALUE);
+				} 
+				catch (IOException e1) { e1.printStackTrace(); }
+				//System.out.println("Number of lines: " + lnr.getLineNumber()); 
+				lnr.close();
+				
+				node_data = new double [lnr.getLineNumber()-1][Configurations.refNode_end];
+				trans_data = new double [Configurations.refNode_end][lnr.getLineNumber()-1];
+				try {
+					scan = new Scanner (new BufferedReader(new FileReader(filename)));
+					scan.nextLine();
+
+					node_entries = 0;
+					sum = new int [Configurations.refNode_end];
+					if (scan.hasNext()){
+						scanedData = scan.nextLine();
+					for (int i = 0; i < lnr.getLineNumber()-1; i++){
+						
+						String [] array = scanedData.split(",");
+						node_data[i][node_id] = Double.parseDouble(array[node_id]);
+						//trans_data = transposeMatrix(node_data);
+						//sum [node_id] += trans_data[node_entries][node_id];
+
+						System.out.println(node_id + " " + node_data[i][node_id]);
+						
+					}//node_entries++;
+					}
+				} catch (FileNotFoundException e) { e.printStackTrace(); }
+				
+				return node_data;
+			}
+	//-------------------------------------- End of XY-generator
+			
+	//-------------------------------------- Calculate the mean:
+
+			public static double mean(int node_id) {
+				// TODO Auto-generated method stub
+				double sum = 0;
+				for (int i =0; i < node_entries; i++) {
+					sum += node_data[i][node_id];
+				} 
+				//System.out.println("Length is: " + node_entries);
+				double data_mean = (sum/node_entries);
+				System.out.println("Mean of node (" + node_id + ") is " + data_mean);
+				return data_mean;
+				
+			}
+			
+			//-------------------------------------- Calculate the mean:
+
+			public static double mean_data(int node_id) {
+				// TODO Auto-generated method stub
+				double sum = 0;
+				//int counter = 0;
+				numberOfNodes = Configurations.refNode_end - Configurations.refNode_start;
+				node_mean = new double [numberOfNodes][Configurations.refNode_end];
+				//for (int i = Configurations.refNode_start; i < Configurations.refNode_end; i++){
+					for (int j =0; j < node_entries; j++) {
+						sum += node_data[j][node_id];
+					}
+					data_mean = (sum/node_entries);
+					node_mean[node_id][node_id] = data_mean;
+					System.out.println("Length is: " + node_mean[node_id][node_id]);
+					System.out.println("Mean of node (" + node_id + ") is " + data_mean);
+					//counter++; 
+				//} 
+				//System.out.println("Length is: " + node_entries);
+				return data_mean;
+				
+			}
+			
+			//====================================== Creating the XY data for plotting 
+			
+			
+	//-------------------------------------- Calculate the mean:
+
+			public static void mean_data(int experimentStart, int experimentEnd, int node_id) {				
+				// TODO Auto-generated method stub
+
+				for (int i = 0; i < elementSize; i++){
+					for (int j  = experimentStart; j < experimentEnd; j++ ){
+					}
+					//System.out.println("DD: " + element);
+				}
+
+						//return node_id;							
+		}
+			
+			
+			
+
+			   public static XYSeriesCollection plotting_mean(int node_id) throws NumberFormatException,
+			           IOException {
+			       mean_dataset = new XYSeriesCollection();
+			       // Set up series and bla bla bla
+					int display_node = node_id;
+				    final XYSeries XY_Data = new XYSeries("node " + display_node + " current");
+				    int sum = 0;
+					//int counter = 0;
+					numberOfNodes = Configurations.refNode_end - Configurations.refNode_start;
+					node_mean = new double [numberOfNodes][Configurations.refNode_end];
+					
+					for (int i = Configurations.refNode_start; i < Configurations.refNode_end; i++){
+						for (int j =0; j < node_entries; j++) {
+							sum += node_data[j][node_id];
+						}
+						data_mean = (sum/node_entries);
+						node_mean[node_id][node_id] = data_mean;
+						Xvalue = data_mean;
+						Yvalue = data_mean;
+						System.out.println("Length is: " + node_mean[node_id][node_id]);
+						System.out.println("Mean of node (" + node_id + ") is " + data_mean);
+						XY_Data.add(Xvalue, Yvalue);
+					}
+					mean_dataset.addSeries(XY_Data);
+			        return mean_dataset;
+			    }
+			    
+			    
+			    
+			    //	public static double[][] transposeMatrix(double [][] m){
+//        trans = new double[m[0].length][m.length];
+//        for (int i = 0; i < m.length; i++){
+//        	//sum = 0;
+//            for (int j = 0; j < m[0].length; j++){
+//                trans[j][i] = m[i][j];
+//                //sum += trans[j][i];
+//                System.out.println(j + " " + trans[j][i]);
+//            }
+//        }
+//        return trans;
+//    }	
